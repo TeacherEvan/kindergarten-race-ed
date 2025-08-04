@@ -171,9 +171,9 @@ export const useGameLogic = () => {
         if (isCorrect) {
           // Correct tap: move forward
           if (playerSide === 'left') {
-            newState.player1Progress = Math.min(prev.player1Progress + 15, 100)
+            newState.player1Progress = Math.min(prev.player1Progress + 20, 100)
           } else {
-            newState.player2Progress = Math.min(prev.player2Progress + 15, 100)
+            newState.player2Progress = Math.min(prev.player2Progress + 20, 100)
           }
 
           // Check for winner
@@ -209,9 +209,9 @@ export const useGameLogic = () => {
         } else {
           // Incorrect tap: move backward by the same amount
           if (playerSide === 'left') {
-            newState.player1Progress = Math.max(prev.player1Progress - 15, 0)
+            newState.player1Progress = Math.max(prev.player1Progress - 20, 0)
           } else {
-            newState.player2Progress = Math.max(prev.player2Progress - 15, 0)
+            newState.player2Progress = Math.max(prev.player2Progress - 20, 0)
           }
           
           eventTracker.trackGameStateChange(oldState, newState, 'incorrect_tap_penalty')
