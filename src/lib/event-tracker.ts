@@ -29,6 +29,8 @@ class EventTracker {
     frameRate: 0,
     touchLatency: 0
   }
+  private spawnCount = 0
+  private lastSpawnReset = Date.now()
 
   constructor() {
     // Set up global error handlers
@@ -132,7 +134,25 @@ class EventTracker {
       data: { objectType, position }
     })
     
-    this.performanceMetrics.objectSpawnRate++
+    this.spawnCount++
+    
+    // Calculate spawn rate per second and reset counter periodically
+    const now = Date.now()
+    if (now - this.lastSpawnReset >= 1000) {
+      this.performanceMetrics.objectSpawnRate = this.spawnCount
+      this.spawnCount = 0
+      this.lastSpawnReset = now
+      
+      // Track high spawn rate as potential performance issue
+      if (this.performanceMetrics.objectSpawnRate > 10) {
+        this.trackEvent({
+          type: 'warning',
+          category: 'performance',
+          message: 'High object spawn rate detected',
+          data: { spawnRate: this.performanceMetrics.objectSpawnRate }
+        })
+      }
+    }
   }
 
   trackObjectTap(objectId: string, correct: boolean, playerSide: 'left' | 'right', latency: number) {
@@ -195,6 +215,14 @@ class EventTracker {
 
   getPerformanceMetrics(): PerformanceMetrics {
     return { ...this.performanceMetrics }
+  }
+
+  // Reset performance metrics
+  resetPerformanceMetrics() {
+    this.spawnCount = 0
+    this.lastSpawnReset = Date.now()
+    this.performanceMetrics.objectSpawnRate = 0
+    this.performanceMetrics.touchLatency = 0
   }
 
   // Export events for debugging
