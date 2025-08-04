@@ -40,7 +40,7 @@ export const PlayerArea = memo(({ playerNumber, progress, children, isWinner }: 
       <div 
         className={`absolute left-1/2 transform -translate-x-1/2 text-6xl transition-all duration-500 ${progress > 95 ? 'turtle-hop' : ''}`}
         style={{ 
-          bottom: `${progress * 0.75}%`,
+          bottom: `${4 + (progress * 0.71)}%`,
           filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
         }}
       >
