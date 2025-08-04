@@ -111,6 +111,17 @@
 
 .game-area {
   background: linear-gradient(180deg, 
-    oklch(0.9 0.1 200) 0%, 
-    oklch(0.95 0.05 120) 100%);
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.2) 100%);
+}
+
+/* Main game background with scraped image */
+.bg-background {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
+    url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2971&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }

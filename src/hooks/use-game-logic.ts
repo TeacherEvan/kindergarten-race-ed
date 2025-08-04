@@ -34,7 +34,7 @@ export const GAME_CATEGORIES: GameCategory[] = [
   {
     name: "Fruits & Vegetables",
     items: [
-      { emoji: "🍎", name: "apple" },
+      { emoji: "🔴", name: "apple" }, // Using red circle to represent dark red apple, distinct from tomato
       { emoji: "🍌", name: "banana" },
       { emoji: "🍇", name: "grapes" },
       { emoji: "🍓", name: "strawberry" },
