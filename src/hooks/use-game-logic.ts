@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { eventTracker } from '../lib/event-tracker'
 
 export interface GameObject {
   id: string
@@ -97,85 +98,122 @@ export const useGameLogic = () => {
   }, [currentCategory])
 
   const spawnObject = useCallback(() => {
-    const randomItem = currentCategory.items[Math.floor(Math.random() * currentCategory.items.length)]
-    const newObject: GameObject = {
-      id: `obj-${Date.now()}-${Math.random()}`,
-      type: randomItem.name,
-      emoji: randomItem.emoji,
-      x: Math.random() * 80 + 10, // 10% to 90% of screen width
-      y: -100,
-      speed: Math.random() * 2 + 1, // 1-3 speed
-      size: 60
+    try {
+      const randomItem = currentCategory.items[Math.floor(Math.random() * currentCategory.items.length)]
+      const newObject: GameObject = {
+        id: `obj-${Date.now()}-${Math.random()}`,
+        type: randomItem.name,
+        emoji: randomItem.emoji,
+        x: Math.random() * 80 + 10, // 10% to 90% of screen width
+        y: -100,
+        speed: Math.random() * 1.5 + 0.5, // Slower: 0.5-2 speed (was 1-3)
+        size: 60
+      }
+      
+      setGameObjects(prev => [...prev, newObject])
+      
+      // Track object spawn
+      eventTracker.trackObjectSpawn(randomItem.name, { x: newObject.x, y: newObject.y })
+    } catch (error) {
+      eventTracker.trackError(error as Error, 'spawnObject')
     }
-    setGameObjects(prev => [...prev, newObject])
   }, [currentCategory])
 
   const updateObjects = useCallback(() => {
-    setGameObjects(prev => 
-      prev
-        .map(obj => ({ ...obj, y: obj.y + obj.speed * 2 }))
-        .filter(obj => obj.y < window.innerHeight + 100)
-    )
+    try {
+      setGameObjects(prev => 
+        prev
+          .map(obj => ({ ...obj, y: obj.y + obj.speed * 1.5 })) // Slower movement (was * 2)
+          .filter(obj => obj.y < window.innerHeight + 100)
+      )
+    } catch (error) {
+      eventTracker.trackError(error as Error, 'updateObjects')
+    }
   }, [])
 
   const handleObjectTap = useCallback((objectId: string, playerSide: 'left' | 'right') => {
-    const tappedObject = gameObjects.find(obj => obj.id === objectId)
-    if (!tappedObject) return
+    const tapStartTime = performance.now()
+    
+    try {
+      const tappedObject = gameObjects.find(obj => obj.id === objectId)
+      if (!tappedObject) {
+        eventTracker.trackWarning('Tapped object not found', { objectId, playerSide })
+        return
+      }
 
-    const isCorrect = currentCategory.requiresSequence 
-      ? tappedObject.type === gameState.currentTarget
-      : tappedObject.emoji === gameState.targetEmoji
+      const isCorrect = currentCategory.requiresSequence 
+        ? tappedObject.type === gameState.currentTarget
+        : tappedObject.emoji === gameState.targetEmoji
 
-    if (isCorrect) {
-      setGameState(prev => {
-        const newState = { ...prev }
+      const tapLatency = performance.now() - tapStartTime
+      eventTracker.trackObjectTap(objectId, isCorrect, playerSide, tapLatency)
+
+      if (isCorrect) {
+        const oldState = { ...gameState }
         
-        if (playerSide === 'left') {
-          newState.player1Progress = Math.min(prev.player1Progress + 10, 100)
-        } else {
-          newState.player2Progress = Math.min(prev.player2Progress + 10, 100)
-        }
-
-        // Check for winner
-        if (newState.player1Progress >= 100) {
-          newState.winner = 1
-        } else if (newState.player2Progress >= 100) {
-          newState.winner = 2
-        }
-
-        // Advance sequence for alphabet level
-        if (currentCategory.requiresSequence && isCorrect) {
-          const nextIndex = (currentCategory.sequenceIndex || 0) + 1
-          GAME_CATEGORIES[gameState.level].sequenceIndex = nextIndex
+        setGameState(prev => {
+          const newState = { ...prev }
           
-          if (nextIndex < currentCategory.items.length) {
-            const nextTarget = generateRandomTarget()
-            newState.currentTarget = nextTarget.name
-            newState.targetEmoji = nextTarget.emoji
+          if (playerSide === 'left') {
+            newState.player1Progress = Math.min(prev.player1Progress + 10, 100)
+          } else {
+            newState.player2Progress = Math.min(prev.player2Progress + 10, 100)
           }
-        }
 
-        return newState
-      })
+          // Check for winner
+          if (newState.player1Progress >= 100) {
+            newState.winner = 1
+            eventTracker.trackGameStateChange(oldState, newState, 'player1_wins')
+          } else if (newState.player2Progress >= 100) {
+            newState.winner = 2
+            eventTracker.trackGameStateChange(oldState, newState, 'player2_wins')
+          }
 
-      // Remove the tapped object
-      setGameObjects(prev => prev.filter(obj => obj.id !== objectId))
+          // Advance sequence for alphabet level
+          if (currentCategory.requiresSequence && isCorrect) {
+            const nextIndex = (currentCategory.sequenceIndex || 0) + 1
+            GAME_CATEGORIES[gameState.level].sequenceIndex = nextIndex
+            
+            if (nextIndex < currentCategory.items.length) {
+              const nextTarget = generateRandomTarget()
+              newState.currentTarget = nextTarget.name
+              newState.targetEmoji = nextTarget.emoji
+              eventTracker.trackGameStateChange(oldState, newState, 'sequence_advance')
+            }
+          }
+
+          return newState
+        })
+
+        // Remove the tapped object
+        setGameObjects(prev => prev.filter(obj => obj.id !== objectId))
+      }
+    } catch (error) {
+      eventTracker.trackError(error as Error, 'handleObjectTap')
     }
-  }, [gameObjects, gameState.currentTarget, gameState.targetEmoji, currentCategory, generateRandomTarget, setGameState])
+  }, [gameObjects, gameState.currentTarget, gameState.targetEmoji, currentCategory, generateRandomTarget, setGameState, gameState])
 
   const startGame = useCallback(() => {
-    const target = generateRandomTarget()
-    setGameState(prev => ({
-      ...prev,
-      gameStarted: true,
-      currentTarget: target.name,
-      targetEmoji: target.emoji,
-      targetChangeTime: Date.now() + 10000,
-      winner: null,
-      player1Progress: 0,
-      player2Progress: 0
-    }))
-  }, [generateRandomTarget, setGameState])
+    try {
+      const target = generateRandomTarget()
+      const oldState = { ...gameState }
+      
+      setGameState(prev => ({
+        ...prev,
+        gameStarted: true,
+        currentTarget: target.name,
+        targetEmoji: target.emoji,
+        targetChangeTime: Date.now() + 10000,
+        winner: null,
+        player1Progress: 0,
+        player2Progress: 0
+      }))
+      
+      eventTracker.trackGameStateChange(oldState, gameState, 'game_start')
+    } catch (error) {
+      eventTracker.trackError(error as Error, 'startGame')
+    }
+  }, [generateRandomTarget, setGameState, gameState])
 
   const nextLevel = useCallback(() => {
     const newLevel = Math.min(gameState.level + 1, GAME_CATEGORIES.length - 1)
@@ -231,11 +269,11 @@ export const useGameLogic = () => {
     return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, gameState.targetChangeTime, currentCategory.requiresSequence, generateRandomTarget, setGameState])
 
-  // Spawn objects
+  // Spawn objects - More frequent spawning for increased density
   useEffect(() => {
     if (!gameState.gameStarted || gameState.winner) return
 
-    const interval = setInterval(spawnObject, 1500)
+    const interval = setInterval(spawnObject, 800) // Faster spawning: 800ms (was 1500ms)
     return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, spawnObject])
 

@@ -4,6 +4,7 @@ import { PlayerArea } from './components/PlayerArea'
 import { FallingObject } from './components/FallingObject'
 import { TargetDisplay } from './components/TargetDisplay'
 import { GameMenu } from './components/GameMenu'
+import { EventTrackerDebug } from './components/EventTrackerDebug'
 
 function App() {
   const {
@@ -17,6 +18,7 @@ function App() {
   } = useGameLogic()
 
   const [timeRemaining, setTimeRemaining] = useState(10000)
+  const [debugVisible, setDebugVisible] = useState(false)
 
   // Update time remaining for target display
   useEffect(() => {
@@ -103,6 +105,12 @@ function App() {
         level={gameState.level}
         categoryName={currentCategory.name}
         maxLevel={GAME_CATEGORIES.length}
+      />
+
+      {/* Event Tracker Debug */}
+      <EventTrackerDebug
+        isVisible={debugVisible}
+        onToggle={() => setDebugVisible(!debugVisible)}
       />
     </div>
   )

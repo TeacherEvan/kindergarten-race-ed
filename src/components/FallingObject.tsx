@@ -22,7 +22,7 @@ export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectP
         fontSize: `${object.size}px`,
         lineHeight: 1,
         zIndex: 10,
-        animationDuration: `${(window.innerHeight + 200) / (object.speed * 2) / 60}s`
+        animationDuration: `${(window.innerHeight + 200) / (object.speed * 1.5) / 60}s` // Match slower speed
       }}
       onClick={handleClick}
       onTouchStart={handleClick}
