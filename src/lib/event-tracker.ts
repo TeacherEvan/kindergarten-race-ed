@@ -125,26 +125,38 @@ class EventTracker {
     }
   }
 
-  // Game-specific tracking methods
-  trackObjectSpawn(objectType: string, position: { x: number; y: number }) {
-    this.trackEvent({
-      type: 'info',
-      category: 'game_object',
-      message: 'Object spawned',
-      data: { objectType, position }
-    })
+  // Game-specific tracking methods with optimized performance
+  trackObjectSpawn(objectType: string, position?: { x?: number; y?: number; count?: number }) {
+    // Batch track spawns to reduce overhead
+    if (position?.count) {
+      // For batch spawns, just track the batch size
+      this.trackEvent({
+        type: 'info',
+        category: 'game_object',
+        message: 'Objects batch spawned',
+        data: { batchSize: position.count, objectType }
+      })
+    } else {
+      // Individual spawn tracking (less frequent)
+      this.trackEvent({
+        type: 'info',
+        category: 'game_object',
+        message: 'Object spawned',
+        data: { objectType, position }
+      })
+    }
     
     this.spawnCount++
     
     // Calculate spawn rate per second and reset counter periodically
     const now = Date.now()
-    if (now - this.lastSpawnReset >= 1000) {
-      this.performanceMetrics.objectSpawnRate = this.spawnCount
+    if (now - this.lastSpawnReset >= 2000) { // Check every 2 seconds instead of 1
+      this.performanceMetrics.objectSpawnRate = this.spawnCount / 2
       this.spawnCount = 0
       this.lastSpawnReset = now
       
       // Track high spawn rate as potential performance issue
-      if (this.performanceMetrics.objectSpawnRate > 10) {
+      if (this.performanceMetrics.objectSpawnRate > 8) {
         this.trackEvent({
           type: 'warning',
           category: 'performance',

@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import { GameObject } from '../hooks/use-game-logic'
 
 interface FallingObjectProps {
@@ -10,20 +10,24 @@ interface FallingObjectProps {
 export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectProps) => {
   const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     onTap(object.id, playerSide)
   }
 
+  // Memoize style calculations to prevent recalculation on every render
+  const objectStyle = useMemo(() => ({
+    left: `${object.x}%`,
+    top: `${object.y}px`,
+    fontSize: `${object.size}px`,
+    transform: `scale(var(--object-scale, 1))`,
+    lineHeight: 1,
+    zIndex: 10
+  }), [object.x, object.y, object.size])
+
   return (
     <div
-      className="absolute cursor-pointer select-none falling-object hover:scale-110 transition-transform duration-150"
-      style={{
-        left: `${object.x}%`,
-        top: `${object.y}px`,
-        fontSize: `calc(${object.size}px * var(--object-scale, 1))`, // Responsive object size
-        lineHeight: 1,
-        zIndex: 10,
-        animationDuration: `calc(${(window.innerHeight + 200) / (object.speed * 1.5) / 60}s * var(--fall-speed-scale, 1))` // Responsive animation speed
-      }}
+      className="absolute cursor-pointer select-none hover:scale-110 transition-transform duration-150 will-change-transform"
+      style={objectStyle}
       onClick={handleClick}
       onTouchStart={handleClick}
     >
@@ -31,5 +35,13 @@ export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectP
         {object.emoji}
       </div>
     </div>
+  )
+}, (prevProps, nextProps) => {
+  // Custom comparison function for better memoization
+  return (
+    prevProps.object.id === nextProps.object.id &&
+    prevProps.object.x === nextProps.object.x &&
+    prevProps.object.y === nextProps.object.y &&
+    prevProps.playerSide === nextProps.playerSide
   )
 })

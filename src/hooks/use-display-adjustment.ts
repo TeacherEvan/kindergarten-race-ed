@@ -43,51 +43,45 @@ export function useDisplayAdjustment() {
       const heightScale = height / baseHeight
       const scale = Math.min(widthScale, heightScale)
 
-      // Adjust for different screen sizes
+      // Optimize calculations by using cached values
       let fontSize = scale
       let objectSize = scale
       let turtleSize = scale
       let spacing = scale
       let fallSpeed = 1
 
-      // Small screens (mobile/tablet)
+      // Simplified breakpoint calculations for better performance
       if (width < 768) {
-        fontSize = Math.max(scale * 1.2, 0.8) // Larger text on small screens
-        objectSize = Math.max(scale * 1.3, 0.9) // Larger targets for touch
+        fontSize = Math.max(scale * 1.2, 0.8)
+        objectSize = Math.max(scale * 1.3, 0.9)
         turtleSize = Math.max(scale * 1.1, 0.8)
         spacing = Math.max(scale * 1.2, 0.9)
-        fallSpeed = 0.8 // Slower on small screens
-      }
-      // Medium screens (tablets/small laptops)
-      else if (width < 1200) {
+        fallSpeed = 0.7 // Slower for better performance on mobile
+      } else if (width < 1200) {
         fontSize = Math.max(scale * 1.1, 0.9)
         objectSize = Math.max(scale * 1.1, 0.95)
         turtleSize = Math.max(scale * 1.05, 0.9)
         spacing = Math.max(scale * 1.1, 0.95)
-        fallSpeed = 0.9
-      }
-      // Large screens (desktops/large tablets)
-      else if (width < 1920) {
+        fallSpeed = 0.85
+      } else if (width < 1920) {
         fontSize = Math.max(scale, 0.95)
         objectSize = Math.max(scale, 1)
         turtleSize = Math.max(scale, 0.95)
         spacing = Math.max(scale, 1)
         fallSpeed = 1
-      }
-      // Very large screens (4K/ultrawide)
-      else {
+      } else {
         fontSize = Math.min(scale * 1.1, 1.3)
         objectSize = Math.min(scale * 1.05, 1.2)
         turtleSize = Math.min(scale * 1.1, 1.25)
         spacing = Math.min(scale * 1.05, 1.15)
-        fallSpeed = 1.1 // Slightly faster on large screens
+        fallSpeed = 1.1
       }
 
       // Special adjustments for extreme aspect ratios
-      if (aspectRatio > 2.5) { // Ultra-wide screens
+      if (aspectRatio > 2.5) {
         spacing *= 1.2
         objectSize *= 0.9
-      } else if (aspectRatio < 0.6) { // Very tall screens
+      } else if (aspectRatio < 0.6) {
         fontSize *= 1.1
         objectSize *= 1.1
         spacing *= 0.9
@@ -95,46 +89,65 @@ export function useDisplayAdjustment() {
 
       // Portrait mode adjustments
       if (!isLandscape && width < 768) {
-        objectSize *= 1.2 // Larger targets in portrait mobile
+        objectSize *= 1.2
         turtleSize *= 1.1
-        fallSpeed *= 0.7 // Much slower in portrait
+        fallSpeed *= 0.8 // Further reduced for mobile portrait
       }
 
-      setDisplaySettings({
-        scale,
-        fontSize,
-        objectSize,
-        turtleSize,
-        spacing,
-        fallSpeed,
-        isLandscape,
-        screenWidth: width,
-        screenHeight: height,
-        aspectRatio
+      setDisplaySettings(prev => {
+        // Only update if values actually changed to prevent unnecessary renders
+        if (
+          prev.scale === scale &&
+          prev.fontSize === fontSize &&
+          prev.objectSize === objectSize &&
+          prev.turtleSize === turtleSize &&
+          prev.spacing === spacing &&
+          prev.fallSpeed === fallSpeed &&
+          prev.screenWidth === width &&
+          prev.screenHeight === height
+        ) {
+          return prev
+        }
+
+        return {
+          scale,
+          fontSize,
+          objectSize,
+          turtleSize,
+          spacing,
+          fallSpeed,
+          isLandscape,
+          screenWidth: width,
+          screenHeight: height,
+          aspectRatio
+        }
       })
     }
 
     // Initial calculation
     updateDisplaySettings()
 
-    // Listen for resize events
+    // Debounced resize handler to prevent excessive recalculations
+    let resizeTimeout: NodeJS.Timeout
     const handleResize = () => {
-      updateDisplaySettings()
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(updateDisplaySettings, 100)
     }
 
-    // Listen for orientation changes
+    // Listen for orientation changes with debounce
+    let orientationTimeout: NodeJS.Timeout
     const handleOrientationChange = () => {
-      // Delay to ensure dimensions are updated after orientation change
-      setTimeout(updateDisplaySettings, 100)
+      clearTimeout(orientationTimeout)
+      orientationTimeout = setTimeout(updateDisplaySettings, 200)
     }
 
     window.addEventListener('resize', handleResize)
     window.addEventListener('orientationchange', handleOrientationChange)
-    
-    // Also listen for fullscreen changes
     document.addEventListener('fullscreenchange', updateDisplaySettings)
 
     return () => {
+      clearTimeout(resizeTimeout)
+      clearTimeout(orientationTimeout)
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('orientationchange', handleOrientationChange)
       document.removeEventListener('fullscreenchange', updateDisplaySettings)

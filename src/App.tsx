@@ -8,6 +8,7 @@ import { GameMenu } from './components/GameMenu'
 import { EventTrackerDebug } from './components/EventTrackerDebug'
 import { FireworksDisplay } from './components/FireworksDisplay'
 import { DisplayInfo } from './components/DisplayInfo'
+import { PerformanceMonitor } from './components/PerformanceMonitor'
 
 function App() {
   const { 
@@ -150,6 +151,9 @@ function App() {
         isLandscape={displaySettings.isLandscape}
         onToggle={() => setDisplayInfoVisible(!displayInfoVisible)}
       />
+
+      {/* Performance Monitor */}
+      <PerformanceMonitor />
     </div>
   )
 }

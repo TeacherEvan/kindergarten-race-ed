@@ -104,52 +104,73 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
 
   const spawnObject = useCallback(() => {
     try {
-      // Prevent performance bottlenecks by limiting objects on screen
-      if (gameObjects.length > 20) {
+      // Pre-check for performance bottlenecks - more strict limit
+      if (gameObjects.length > 15) {
         eventTracker.trackWarning('Too many objects on screen, skipping spawn', { 
           currentCount: gameObjects.length 
         })
         return
       }
 
-      // Spawn 2-4 objects at once for better density without performance hit
-      const spawnCount = Math.floor(Math.random() * 3) + 2 // 2-4 objects
+      // Optimized spawning: fewer objects, less computation
+      const spawnCount = Math.floor(Math.random() * 2) + 1 // 1-2 objects only
       const newObjects: GameObject[] = []
       
+      // Pre-calculate random values to reduce computation in loop
+      const baseId = Date.now()
+      const categoryItems = currentCategory.items
+      const categoryLength = categoryItems.length
+      
       for (let i = 0; i < spawnCount; i++) {
-        const randomItem = currentCategory.items[Math.floor(Math.random() * currentCategory.items.length)]
+        // Use more efficient random selection
+        const randomIndex = Math.floor(Math.random() * categoryLength)
+        const randomItem = categoryItems[randomIndex]
+        
         const newObject: GameObject = {
-          id: `obj-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `${baseId}-${i}`, // Simpler ID generation
           type: randomItem.name,
           emoji: randomItem.emoji,
-          x: Math.random() * 80 + 10, // 10% to 90% of screen width
-          y: -100 - (i * 50), // Stagger vertical positions to avoid overlap
-          speed: (Math.random() * 1.2 + 0.8) * fallSpeedMultiplier, // Apply fall speed multiplier
+          x: Math.random() * 80 + 10,
+          y: -100 - (i * 60), // Increased stagger to prevent overlap
+          speed: (Math.random() * 0.8 + 0.6) * fallSpeedMultiplier, // Reduced speed variance
           size: 60
         }
         newObjects.push(newObject)
-        
-        // Track each object spawn
-        eventTracker.trackObjectSpawn(randomItem.name, { x: newObject.x, y: newObject.y })
       }
       
+      // Single batch update instead of tracking each individually
       setGameObjects(prev => [...prev, ...newObjects])
+      
+      // Track spawn event once per batch
+      eventTracker.trackObjectSpawn(`batch-${spawnCount}`, { count: spawnCount })
     } catch (error) {
       eventTracker.trackError(error as Error, 'spawnObject')
     }
-  }, [currentCategory, gameObjects.length])
+  }, [currentCategory, gameObjects.length, fallSpeedMultiplier])
 
   const updateObjects = useCallback(() => {
     try {
-      setGameObjects(prev => 
-        prev
-          .map(obj => ({ ...obj, y: obj.y + obj.speed * 1.2 * fallSpeedMultiplier })) // Apply fall speed multiplier
-          .filter(obj => obj.y < window.innerHeight + 100)
-      )
+      setGameObjects(prev => {
+        // Filter and update in single pass for better performance
+        const updatedObjects = []
+        const screenHeight = window.innerHeight
+        const speedMultiplier = 1.2 * fallSpeedMultiplier
+        
+        for (const obj of prev) {
+          const newY = obj.y + obj.speed * speedMultiplier
+          
+          // Only keep objects that are still visible
+          if (newY < screenHeight + 100) {
+            updatedObjects.push({ ...obj, y: newY })
+          }
+        }
+        
+        return updatedObjects
+      })
     } catch (error) {
       eventTracker.trackError(error as Error, 'updateObjects')
     }
-  }, [])
+  }, [fallSpeedMultiplier])
 
   const handleObjectTap = useCallback((objectId: string, playerSide: 'left' | 'right') => {
     const tapStartTime = performance.now()
@@ -315,27 +336,22 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
     return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, gameState.targetChangeTime, currentCategory.requiresSequence, generateRandomTarget, setGameState])
 
-  // Spawn objects - Optimized for better performance with 350ms intervals
+  // Spawn objects - Optimized with longer intervals for better performance
   useEffect(() => {
     if (!gameState.gameStarted || gameState.winner) return
 
-    // Use 350ms intervals as requested for optimal performance
-    const interval = setInterval(spawnObject, 350)
+    // Increased to 500ms for better performance while maintaining game flow
+    const interval = setInterval(spawnObject, 500)
     return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, spawnObject])
 
-  // Update object positions using requestAnimationFrame for better performance
+  // Update object positions using optimized timer-based approach
   useEffect(() => {
     if (!gameState.gameStarted || gameState.winner) return
 
-    let animationId: number
-    const animate = () => {
-      updateObjects()
-      animationId = requestAnimationFrame(animate)
-    }
-    
-    animationId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(animationId)
+    // Use setInterval instead of requestAnimationFrame for less frequent updates
+    const interval = setInterval(updateObjects, 16) // ~60fps but more controlled
+    return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, updateObjects])
 
   return {
