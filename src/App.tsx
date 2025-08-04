@@ -1,5 +1,111 @@
+import { useState, useEffect } from 'react'
+import { useGameLogic, GAME_CATEGORIES } from './hooks/use-game-logic'
+import { PlayerArea } from './components/PlayerArea'
+import { FallingObject } from './components/FallingObject'
+import { TargetDisplay } from './components/TargetDisplay'
+import { GameMenu } from './components/GameMenu'
+
 function App() {
-    return <div></div>
+  const {
+    gameObjects,
+    gameState,
+    currentCategory,
+    handleObjectTap,
+    startGame,
+    nextLevel,
+    resetGame
+  } = useGameLogic()
+
+  const [timeRemaining, setTimeRemaining] = useState(10000)
+
+  // Update time remaining for target display
+  useEffect(() => {
+    if (!gameState.gameStarted || gameState.winner || currentCategory.requiresSequence) return
+
+    const interval = setInterval(() => {
+      const remaining = gameState.targetChangeTime - Date.now()
+      setTimeRemaining(Math.max(0, remaining))
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [gameState.gameStarted, gameState.winner, gameState.targetChangeTime, currentCategory.requiresSequence])
+
+  // Split objects for each player side
+  const leftObjects = gameObjects.filter(obj => obj.x <= 50)
+  const rightObjects = gameObjects.filter(obj => obj.x > 50)
+
+  return (
+    <div className="h-screen bg-background overflow-hidden relative">
+      {/* Target Display - Fixed at top center */}
+      {gameState.gameStarted && !gameState.winner && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 w-80">
+          <TargetDisplay
+            currentTarget={gameState.currentTarget}
+            targetEmoji={gameState.targetEmoji}
+            category={currentCategory}
+            timeRemaining={currentCategory.requiresSequence ? undefined : timeRemaining}
+          />
+        </div>
+      )}
+
+      {/* Split Screen Game Areas */}
+      <div className="h-full flex">
+        {/* Player 1 Area (Left) */}
+        <div className="w-1/2 h-full relative">
+          <PlayerArea
+            playerNumber={1}
+            progress={gameState.player1Progress}
+            isWinner={gameState.winner === 1}
+          >
+            {leftObjects.map(obj => (
+              <FallingObject
+                key={obj.id}
+                object={{
+                  ...obj,
+                  x: obj.x * 2 // Adjust x position for left half
+                }}
+                onTap={handleObjectTap}
+                playerSide="left"
+              />
+            ))}
+          </PlayerArea>
+        </div>
+
+        {/* Player 2 Area (Right) */}
+        <div className="w-1/2 h-full relative">
+          <PlayerArea
+            playerNumber={2}
+            progress={gameState.player2Progress}
+            isWinner={gameState.winner === 2}
+          >
+            {rightObjects.map(obj => (
+              <FallingObject
+                key={obj.id}
+                object={{
+                  ...obj,
+                  x: (obj.x - 50) * 2 // Adjust x position for right half
+                }}
+                onTap={handleObjectTap}
+                playerSide="right"
+              />
+            ))}
+          </PlayerArea>
+        </div>
+      </div>
+
+      {/* Game Menu Overlay */}
+      <GameMenu
+        onStartGame={startGame}
+        onNextLevel={gameState.level < GAME_CATEGORIES.length - 1 ? nextLevel : undefined}
+        onResetGame={resetGame}
+        gameStarted={gameState.gameStarted}
+        winner={gameState.winner}
+        level={gameState.level}
+        categoryName={currentCategory.name}
+        maxLevel={GAME_CATEGORIES.length}
+      />
+    </div>
+  )
 }
 
 export default App
