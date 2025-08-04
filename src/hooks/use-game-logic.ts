@@ -163,12 +163,13 @@ export const useGameLogic = () => {
       const tapLatency = performance.now() - tapStartTime
       eventTracker.trackObjectTap(objectId, isCorrect, playerSide, tapLatency)
 
-      if (isCorrect) {
-        const oldState = { ...gameState }
+      const oldState = { ...gameState }
+      
+      setGameState(prev => {
+        const newState = { ...prev }
         
-        setGameState(prev => {
-          const newState = { ...prev }
-          
+        if (isCorrect) {
+          // Correct tap: move forward
           if (playerSide === 'left') {
             newState.player1Progress = Math.min(prev.player1Progress + 10, 100)
           } else {
@@ -185,7 +186,7 @@ export const useGameLogic = () => {
           }
 
           // Advance sequence for alphabet level
-          if (currentCategory.requiresSequence && isCorrect) {
+          if (currentCategory.requiresSequence) {
             const nextIndex = (currentCategory.sequenceIndex || 0) + 1
             GAME_CATEGORIES[gameState.level].sequenceIndex = nextIndex
             
@@ -196,13 +197,22 @@ export const useGameLogic = () => {
               eventTracker.trackGameStateChange(oldState, newState, 'sequence_advance')
             }
           }
+        } else {
+          // Incorrect tap: move backward by the same amount
+          if (playerSide === 'left') {
+            newState.player1Progress = Math.max(prev.player1Progress - 10, 0)
+          } else {
+            newState.player2Progress = Math.max(prev.player2Progress - 10, 0)
+          }
+          
+          eventTracker.trackGameStateChange(oldState, newState, 'incorrect_tap_penalty')
+        }
 
-          return newState
-        })
+        return newState
+      })
 
-        // Remove the tapped object
-        setGameObjects(prev => prev.filter(obj => obj.id !== objectId))
-      }
+      // Remove the tapped object regardless of correct/incorrect
+      setGameObjects(prev => prev.filter(obj => obj.id !== objectId))
     } catch (error) {
       eventTracker.trackError(error as Error, 'handleObjectTap')
     }
