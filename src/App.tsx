@@ -5,6 +5,7 @@ import { FallingObject } from './components/FallingObject'
 import { TargetDisplay } from './components/TargetDisplay'
 import { GameMenu } from './components/GameMenu'
 import { EventTrackerDebug } from './components/EventTrackerDebug'
+import { FireworksDisplay } from './components/FireworksDisplay'
 
 function App() {
   const {
@@ -111,6 +112,12 @@ function App() {
       <EventTrackerDebug
         isVisible={debugVisible}
         onToggle={() => setDebugVisible(!debugVisible)}
+      />
+
+      {/* Fireworks Display */}
+      <FireworksDisplay
+        isVisible={!!gameState.winner}
+        winner={gameState.winner}
       />
     </div>
   )

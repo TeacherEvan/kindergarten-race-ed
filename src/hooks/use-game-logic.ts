@@ -185,6 +185,15 @@ export const useGameLogic = () => {
             eventTracker.trackGameStateChange(oldState, newState, 'player2_wins')
           }
 
+          // Change target immediately on correct tap (for non-sequence modes)
+          if (!currentCategory.requiresSequence && !newState.winner) {
+            const nextTarget = generateRandomTarget()
+            newState.currentTarget = nextTarget.name
+            newState.targetEmoji = nextTarget.emoji
+            newState.targetChangeTime = Date.now() + 10000 // Reset timer
+            eventTracker.trackGameStateChange(oldState, newState, 'target_change_on_correct_tap')
+          }
+
           // Advance sequence for alphabet level
           if (currentCategory.requiresSequence) {
             const nextIndex = (currentCategory.sequenceIndex || 0) + 1
