@@ -19,10 +19,10 @@ export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectP
       style={{
         left: `${object.x}%`,
         top: `${object.y}px`,
-        fontSize: `${object.size}px`,
+        fontSize: `calc(${object.size}px * var(--object-scale, 1))`, // Responsive object size
         lineHeight: 1,
         zIndex: 10,
-        animationDuration: `${(window.innerHeight + 200) / (object.speed * 1.5) / 60}s` // Match slower speed
+        animationDuration: `calc(${(window.innerHeight + 200) / (object.speed * 1.5) / 60}s * var(--fall-speed-scale, 1))` // Responsive animation speed
       }}
       onClick={handleClick}
       onTouchStart={handleClick}

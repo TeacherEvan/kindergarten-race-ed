@@ -17,15 +17,18 @@ export const PlayerArea = memo(({ playerNumber, progress, children, isWinner }: 
     <Card className={`relative h-full ${borderColor} border-4 game-area overflow-hidden`}>
       {/* Player Header */}
       <div className={`absolute top-4 left-4 right-4 z-20 ${isWinner ? 'celebrate' : ''}`}>
-        <div className={`bg-${playerColor} text-${playerColor}-foreground px-4 py-2 rounded-full text-center font-bold text-lg shadow-lg`}>
+        <div className={`bg-${playerColor} text-${playerColor}-foreground px-4 py-2 rounded-full text-center font-bold shadow-lg`}
+             style={{ fontSize: `calc(1.125rem * var(--font-scale, 1))` }}>
           Player {playerNumber}
         </div>
         <div className="mt-2">
           <Progress 
             value={progress} 
             className="h-3 bg-white/50" 
+            style={{ height: `calc(0.75rem * var(--spacing-scale, 1))` }}
           />
-          <div className="text-center text-sm font-semibold mt-1 text-foreground/80">
+          <div className="text-center font-semibold mt-1 text-foreground/80"
+               style={{ fontSize: `calc(0.875rem * var(--font-scale, 1))` }}>
             {Math.round(progress)}%
           </div>
         </div>
@@ -38,10 +41,11 @@ export const PlayerArea = memo(({ playerNumber, progress, children, isWinner }: 
 
       {/* Turtle Character */}
       <div 
-        className={`absolute left-1/2 transform -translate-x-1/2 text-6xl transition-all duration-500 ${progress > 95 ? 'turtle-hop' : ''}`}
+        className={`absolute left-1/2 transform -translate-x-1/2 transition-all duration-500 ${progress > 95 ? 'turtle-hop' : ''}`}
         style={{ 
           bottom: `${20 + (progress * 0.75)}px`,
-          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+          fontSize: `calc(3.75rem * var(--turtle-scale, 1))` // Responsive turtle size
         }}
       >
         🐢

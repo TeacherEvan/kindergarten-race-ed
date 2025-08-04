@@ -30,6 +30,10 @@ export interface GameCategory {
   sequenceIndex?: number
 }
 
+interface UseGameLogicOptions {
+  fallSpeedMultiplier?: number
+}
+
 export const GAME_CATEGORIES: GameCategory[] = [
   {
     name: "Fruits & Vegetables",
@@ -71,7 +75,8 @@ export const GAME_CATEGORIES: GameCategory[] = [
   }
 ]
 
-export const useGameLogic = () => {
+export const useGameLogic = (options: UseGameLogicOptions = {}) => {
+  const { fallSpeedMultiplier = 1 } = options
   const [gameObjects, setGameObjects] = useState<GameObject[]>([])
   const [gameState, setGameState] = useKV<GameState>('kindergarten-race-state', {
     player1Progress: 0,
@@ -119,7 +124,7 @@ export const useGameLogic = () => {
           emoji: randomItem.emoji,
           x: Math.random() * 80 + 10, // 10% to 90% of screen width
           y: -100 - (i * 50), // Stagger vertical positions to avoid overlap
-          speed: Math.random() * 1.2 + 0.8, // Optimized speed: 0.8-2.0
+          speed: (Math.random() * 1.2 + 0.8) * fallSpeedMultiplier, // Apply fall speed multiplier
           size: 60
         }
         newObjects.push(newObject)
@@ -138,7 +143,7 @@ export const useGameLogic = () => {
     try {
       setGameObjects(prev => 
         prev
-          .map(obj => ({ ...obj, y: obj.y + obj.speed * 1.2 })) // Optimized movement speed
+          .map(obj => ({ ...obj, y: obj.y + obj.speed * 1.2 * fallSpeedMultiplier })) // Apply fall speed multiplier
           .filter(obj => obj.y < window.innerHeight + 100)
       )
     } catch (error) {

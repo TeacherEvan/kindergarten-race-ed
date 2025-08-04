@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useGameLogic, GAME_CATEGORIES } from './hooks/use-game-logic'
+import { useDisplayAdjustment } from './hooks/use-display-adjustment'
 import { PlayerArea } from './components/PlayerArea'
 import { FallingObject } from './components/FallingObject'
 import { TargetDisplay } from './components/TargetDisplay'
 import { GameMenu } from './components/GameMenu'
 import { EventTrackerDebug } from './components/EventTrackerDebug'
 import { FireworksDisplay } from './components/FireworksDisplay'
+import { DisplayInfo } from './components/DisplayInfo'
 
 function App() {
+  const { 
+    displaySettings, 
+    getScaledStyles, 
+    isSmallScreen,
+    isMediumScreen,
+    isLargeScreen 
+  } = useDisplayAdjustment()
+
   const {
     gameObjects,
     gameState,
@@ -16,10 +26,11 @@ function App() {
     startGame,
     nextLevel,
     resetGame
-  } = useGameLogic()
+  } = useGameLogic({ fallSpeedMultiplier: displaySettings.fallSpeed })
 
   const [timeRemaining, setTimeRemaining] = useState(10000)
   const [debugVisible, setDebugVisible] = useState(false)
+  const [displayInfoVisible, setDisplayInfoVisible] = useState(false)
 
   // Update time remaining for target display
   useEffect(() => {
@@ -38,10 +49,15 @@ function App() {
   const rightObjects = gameObjects.filter(obj => obj.x > 50)
 
   return (
-    <div className="h-screen bg-background overflow-hidden relative">
-      {/* Target Display - Fixed at top center */}
+    <div 
+      className="h-screen bg-background overflow-hidden relative"
+      style={getScaledStyles()}
+    >
+      {/* Target Display - Fixed at top center with responsive sizing */}
       {gameState.gameStarted && !gameState.winner && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 w-80">
+        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-30 ${
+          isSmallScreen ? 'w-64' : isMediumScreen ? 'w-72' : 'w-80'
+        }`}>
           <TargetDisplay
             currentTarget={gameState.currentTarget}
             targetEmoji={gameState.targetEmoji}
@@ -118,6 +134,21 @@ function App() {
       <FireworksDisplay
         isVisible={!!gameState.winner}
         winner={gameState.winner}
+      />
+
+      {/* Display Adjustment Info */}
+      <DisplayInfo
+        isVisible={displayInfoVisible}
+        screenWidth={displaySettings.screenWidth}
+        screenHeight={displaySettings.screenHeight}
+        aspectRatio={displaySettings.aspectRatio}
+        scale={displaySettings.scale}
+        fontSize={displaySettings.fontSize}
+        objectSize={displaySettings.objectSize}
+        turtleSize={displaySettings.turtleSize}
+        fallSpeed={displaySettings.fallSpeed}
+        isLandscape={displaySettings.isLandscape}
+        onToggle={() => setDisplayInfoVisible(!displayInfoVisible)}
       />
     </div>
   )
