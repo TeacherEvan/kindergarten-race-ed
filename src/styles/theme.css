@@ -167,6 +167,9 @@
     --size-80: calc(20rem * var(--size-scale));
     --size-96: calc(24rem * var(--size-scale));
 
+    /* Base spacing variable */
+    --spacing: 1rem;
+
     /* Border radii */
     --radius-factor: 1;
     --radius-sm: calc(2px * var(--radius-factor) * var(--size-scale));

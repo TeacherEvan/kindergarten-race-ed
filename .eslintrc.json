@@ -1,0 +1,18 @@
+{
+  "extends": ["@eslint/js/recommended"],
+  "rules": {
+    "no-inline-styles": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.md", "*.markdown"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "MD009": "off",
+        "MD026": "off",
+        "MD031": "off",
+        "MD032": "off"
+      }
+    }
+  ]
+}

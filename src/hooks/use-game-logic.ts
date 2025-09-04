@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useKV } from '@github/spark/hooks'
+// import { useKV } from '@github/spark/hooks'
 import { eventTracker } from '../lib/event-tracker'
 
 export interface GameObject {
@@ -56,6 +56,21 @@ export const GAME_CATEGORIES: GameCategory[] = [
       { emoji: "3️⃣", name: "three" },
       { emoji: "4️⃣", name: "four" },
       { emoji: "5️⃣", name: "five" },
+      { emoji: "6️⃣", name: "six" },
+      { emoji: "7️⃣", name: "seven" },
+      { emoji: "8️⃣", name: "eight" },
+      { emoji: "9️⃣", name: "nine" },
+      { emoji: "🔟", name: "ten" },
+      { emoji: "11", name: "eleven" },
+      { emoji: "12", name: "twelve" },
+      { emoji: "13", name: "thirteen" },
+      { emoji: "14", name: "fourteen" },
+      { emoji: "15", name: "fifteen" },
+      { emoji: "16", name: "sixteen" },
+      { emoji: "17", name: "seventeen" },
+      { emoji: "18", name: "eighteen" },
+      { emoji: "19", name: "nineteen" },
+      { emoji: "20", name: "twenty" },
       { emoji: "🔵", name: "circle" },
       { emoji: "🟦", name: "square" },
       { emoji: "🔺", name: "triangle" }
@@ -78,7 +93,7 @@ export const GAME_CATEGORIES: GameCategory[] = [
 export const useGameLogic = (options: UseGameLogicOptions = {}) => {
   const { fallSpeedMultiplier = 1 } = options
   const [gameObjects, setGameObjects] = useState<GameObject[]>([])
-  const [gameState, setGameState] = useKV<GameState>('kindergarten-race-state', {
+  const [gameState, setGameState] = useState<GameState>({
     player1Progress: 0,
     player2Progress: 0,
     currentTarget: "",
@@ -152,7 +167,7 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
     try {
       setGameObjects(prev => {
         // Filter and update in single pass for better performance
-        const updatedObjects = []
+        const updatedObjects: GameObject[] = []
         const screenHeight = window.innerHeight
         const speedMultiplier = 1.2 * fallSpeedMultiplier
         

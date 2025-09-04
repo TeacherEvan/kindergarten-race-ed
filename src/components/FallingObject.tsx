@@ -24,6 +24,9 @@ export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectP
     zIndex: 10
   }), [object.x, object.y, object.size])
 
+  // Check if the emoji is actually a number (for numbers >9)
+  const isNumericText = /^\d+$/.test(object.emoji)
+
   return (
     <div
       className="absolute cursor-pointer select-none hover:scale-110 transition-transform duration-150 will-change-transform"
@@ -31,7 +34,7 @@ export const FallingObject = memo(({ object, onTap, playerSide }: FallingObjectP
       onClick={handleClick}
       onTouchStart={handleClick}
     >
-      <div className="drop-shadow-lg hover:drop-shadow-xl transition-all duration-150">
+      <div className={`drop-shadow-lg hover:drop-shadow-xl transition-all duration-150 ${isNumericText ? 'font-bold text-blue-600 bg-white/90 rounded-lg px-2 py-1' : ''}`}>
         {object.emoji}
       </div>
     </div>
