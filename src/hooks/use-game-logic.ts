@@ -56,6 +56,11 @@ export const GAME_CATEGORIES: GameCategory[] = [
       { emoji: "3️⃣", name: "three" },
       { emoji: "4️⃣", name: "four" },
       { emoji: "5️⃣", name: "five" },
+      { emoji: "6️⃣", name: "six" },
+      { emoji: "7️⃣", name: "seven" },
+      { emoji: "8️⃣", name: "eight" },
+      { emoji: "9️⃣", name: "nine" },
+      { emoji: "🔟", name: "ten" },
       { emoji: "🔵", name: "circle" },
       { emoji: "🟦", name: "square" },
       { emoji: "🔺", name: "triangle" }
@@ -104,8 +109,8 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
 
   const spawnObject = useCallback(() => {
     try {
-      // Pre-check for performance bottlenecks - more strict limit
-      if (gameObjects.length > 15) {
+      // Pre-check for performance bottlenecks - increased limit to reduce warnings
+      if (gameObjects.length > 18) {
         eventTracker.trackWarning('Too many objects on screen, skipping spawn', { 
           currentCount: gameObjects.length 
         })
@@ -159,8 +164,8 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
         for (const obj of prev) {
           const newY = obj.y + obj.speed * speedMultiplier
           
-          // Only keep objects that are still visible
-          if (newY < screenHeight + 100) {
+          // Only keep objects that are still visible - improved cleanup threshold
+          if (newY < screenHeight + 50) {
             updatedObjects.push({ ...obj, y: newY })
           }
         }
@@ -340,8 +345,8 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
   useEffect(() => {
     if (!gameState.gameStarted || gameState.winner) return
 
-    // Increased to 500ms for better performance while maintaining game flow
-    const interval = setInterval(spawnObject, 500)
+    // Increased to 600ms for better performance and reduced spawn pressure
+    const interval = setInterval(spawnObject, 600)
     return () => clearInterval(interval)
   }, [gameState.gameStarted, gameState.winner, spawnObject])
 
