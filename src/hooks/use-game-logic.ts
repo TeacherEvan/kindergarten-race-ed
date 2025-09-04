@@ -99,7 +99,7 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
     currentTarget: "",
     targetEmoji: "",
     level: 0,
-    gameStarted: false,
+    gameStarted: true, // Auto-start the game for better UX
     winner: null,
     targetChangeTime: Date.now() + 10000
   })
@@ -116,6 +116,19 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
       return { name: randomItem.name, emoji: randomItem.emoji }
     }
   }, [currentCategory])
+
+  // Initialize target on first load when game auto-starts
+  useEffect(() => {
+    if (gameState.gameStarted && !gameState.currentTarget) {
+      const target = generateRandomTarget()
+      setGameState(prev => ({
+        ...prev,
+        currentTarget: target.name,
+        targetEmoji: target.emoji,
+        targetChangeTime: Date.now() + 10000
+      }))
+    }
+  }, [gameState.gameStarted, gameState.currentTarget, generateRandomTarget])
 
   const spawnObject = useCallback(() => {
     try {
@@ -325,7 +338,7 @@ export const useGameLogic = (options: UseGameLogicOptions = {}) => {
       currentTarget: target.name,
       targetEmoji: target.emoji,
       level: 0,
-      gameStarted: false,
+      gameStarted: true, // Keep auto-start behavior
       winner: null,
       targetChangeTime: Date.now() + 10000
     })
