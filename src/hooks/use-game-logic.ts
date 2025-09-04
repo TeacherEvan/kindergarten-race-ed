@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useKV } from '../lib/mock-spark' // Temporary mock
 import { eventTracker } from '../lib/event-tracker'
 
 export interface GameObject {
