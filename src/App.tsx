@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import './App.css'
 import { useGameLogic, GAME_CATEGORIES } from './hooks/use-game-logic'
 import { useDisplayAdjustment } from './hooks/use-display-adjustment'
 import { PlayerArea } from './components/PlayerArea'
@@ -51,7 +52,7 @@ function App() {
 
   return (
     <div 
-      className="h-screen bg-background overflow-hidden relative"
+      className={`h-screen bg-background overflow-hidden relative app ${isSmallScreen ? 'app--small' : isMediumScreen ? 'app--medium' : 'app--large'}`}
       style={getScaledStyles()}
     >
       {/* Target Display - Fixed at top center with responsive sizing */}

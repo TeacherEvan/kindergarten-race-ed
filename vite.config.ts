@@ -13,5 +13,17 @@ export default defineConfig({
     alias: {
       '@': resolve('./src')
     }
-  }
+  },
+  server: {
+    fs: {
+      strict: false
+    },
+    headers: {
+      'Cache-Control': 'no-cache'
+    }
+  },
+  css: {
+    devSourcemap: true
+  },
+  assetsInclude: ['**/*.css']
 });

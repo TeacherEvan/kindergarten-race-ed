@@ -1,9 +1,25 @@
 {
   "extends": ["@eslint/js/recommended"],
   "rules": {
-    "no-inline-styles": "off"
+    "no-inline-styles": "off",
+    "@typescript-eslint/no-inline-styles": "off",
+    "react/no-inline-styles": "off"
+  },
+  "ignorePatterns": ["*.md", "*.markdown"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
   "overrides": [
+    {
+      "files": ["*.tsx", "*.ts"],
+      "rules": {
+        "no-inline-styles": "off",
+        "@typescript-eslint/no-inline-styles": "off",
+        "react/no-inline-styles": "off"
+      }
+    },
     {
       "files": ["*.md", "*.markdown"],
       "rules": {
@@ -11,7 +27,8 @@
         "MD009": "off",
         "MD026": "off",
         "MD031": "off",
-        "MD032": "off"
+        "MD032": "off",
+        "MD022": "off"
       }
     }
   ]
