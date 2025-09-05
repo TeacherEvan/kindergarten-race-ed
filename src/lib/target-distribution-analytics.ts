@@ -277,7 +277,7 @@ function generateRecommendations(
  */
 export async function analyzeTargetDistribution(
   data: DistributionDataPoint[],
-  timeframe: string = '30d',
+  _timeframe: string = '30d',
   config: AnalysisConfig = DEFAULT_CONFIG
 ): Promise<RaceEquityAnalysis> {
   // Simulate async operation
