@@ -63,14 +63,6 @@ export function TargetDistributionMonitor({
     }
   };
 
-  const getVarianceColor = (variance: number) => {
-    if (variance > 5) return 'text-red-600';
-    if (variance > 2) return 'text-orange-600';
-    if (variance < -5) return 'text-red-600';
-    if (variance < -2) return 'text-orange-600';
-    return 'text-green-600';
-  };
-
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case 'increasing':

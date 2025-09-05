@@ -84,7 +84,6 @@ export function FireworksDisplay({ isVisible, winner }: FireworksDisplayProps) {
     }
 
     // Create initial burst of fireworks
-    const initialFireworks = []
     for (let i = 0; i < 6; i++) {
       setTimeout(() => {
         const x = Math.random() * window.innerWidth

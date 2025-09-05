@@ -16,8 +16,7 @@ function App() {
     displaySettings, 
     getScaledStyles, 
     isSmallScreen,
-    isMediumScreen,
-    isLargeScreen 
+    isMediumScreen
   } = useDisplayAdjustment()
 
   const {
