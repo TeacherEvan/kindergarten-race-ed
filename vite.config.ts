@@ -24,6 +24,5 @@ export default defineConfig({
   },
   css: {
     devSourcemap: true
-  },
-  assetsInclude: ['**/*.css']
+  }
 });
